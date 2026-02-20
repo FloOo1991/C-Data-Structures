@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define FLIB_DEFINITIONS_INCLUDED
-
 typedef char                flib_i8;
 typedef short               flib_i16;
 typedef int                 flib_i32;
