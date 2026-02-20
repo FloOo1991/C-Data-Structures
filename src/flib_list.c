@@ -55,17 +55,16 @@ void* flib_list_get_item(const flib_list* list, flib_ui32 index) {
     return (void *)element;
 }
 
-flib_i32 flib_list_set_item(flib_list* list, flib_ui32 index, void* item) {
+void flib_list_set_item(flib_list* list, flib_ui32 index, void* item) {
     if (list == NULL) FLIB_THROW_NULL_EXCEPTION("list");
     if (item == NULL) FLIB_THROW_NULL_EXCEPTION("item");
     if (index >= list->size) FLIB_THROW_EXCEPTION("Index is out of bounds.");
 
     flib_ptr element = list->data + (list->element_size * index);
     memcpy((void *)element, item, list->element_size);
-    return 1;
 }
 
-flib_i32 flib_list_add(flib_list *list, void *item) {
+void flib_list_add(flib_list *list, void *item) {
     if (list == NULL) FLIB_THROW_NULL_EXCEPTION("list");
     if (item == NULL) FLIB_THROW_NULL_EXCEPTION("item");
 
@@ -78,7 +77,6 @@ flib_i32 flib_list_add(flib_list *list, void *item) {
     flib_ptr element = list->data + (list->element_size * list->size);
     memcpy((void *)element, item, list->element_size);
     list->size++;
-    return 1;
 }
 
 void flib_list_remove(flib_list *list) {
