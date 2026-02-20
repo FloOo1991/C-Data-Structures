@@ -65,9 +65,9 @@ void flib_stack_pop(flib_stack *stack, void *out_item) {
     if (stack == NULL) return;
     if (flib_stack_is_empty(stack)) return;
 
-    if (out_item != NULL) memcpy(out_item, stack->data + (stack->element_size * (stack->size - 1)), stack->element_size);
+    if (out_item != NULL) memcpy(out_item, (void *)stack->data + (stack->element_size * (stack->size - 1)), stack->element_size);
     
-    memset(stack->data + (stack->element_size * (stack->size - 1)), 0, stack->element_size);
+    memset((void *)stack->data + (stack->element_size * (stack->size - 1)), 0, stack->element_size);
     stack->size--;
 }
 
@@ -75,17 +75,22 @@ void flib_stack_peek(flib_stack *stack, void *out_item) {
     if (stack == NULL || out_item == NULL) return;
     if (flib_stack_is_empty(stack)) return;
 
-    memcpy(out_item, stack->data + (stack->element_size * (stack->size - 1)), stack->element_size);
+    memcpy(out_item, (void *)stack->data + (stack->element_size * (stack->size - 1)), stack->element_size);
 }
 
 void _flib_stack_resize(flib_stack *stack, flib_ui32 new_cap) {
     if (stack == NULL) return;
 
+    if (new_cap == 0) { free((void *)stack->data); stack->data = 0; stack->capacity = 0; stack->size = 0; return; }
+
     flib_ptr tmp = (flib_ptr)realloc((void *)stack->data, new_cap * stack->element_size);
-    if (tmp == NULL) return;
+    if ((void *)tmp == NULL) return;
 
     stack->data = tmp;
     stack->capacity = new_cap;
-    if (stack->capacity < stack->size) stack->size = stack->capacity;
-    memset(stack->data + (stack->size * stack->element_size), 0, (stack->capacity - stack->size) * stack->element_size);
+    if (stack->capacity <= stack->size) {
+        stack->size = stack->capacity;
+    } else {
+        memset((void *)stack->data + (stack->size * stack->element_size), 0, stack->element_size * (stack->capacity - stack->size));
+    }
 }

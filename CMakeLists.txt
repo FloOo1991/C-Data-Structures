@@ -15,4 +15,6 @@ target_sources(
     src/main.c
     src/flib_array.c
     src/flib_list.c
+    src/flib_stack.c
+    src/flib_queue.c
 )
