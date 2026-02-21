@@ -14,14 +14,14 @@ typedef flib_i32 (* flib_list_compare_func)(const void *lhs, const void *rhs);
 /**
  * @brief Creates and allocates a new empty list capable of containing 'capacity' amount of elements.
  * 
- * @param capacity The capacity of the list initialized.
- * @param element_size The size of one element in bytes of the type the list should contain.
+ * @param capacity The initial capacity of the list.
+ * @param element_size The size of one element in bytes of the data type the list should contain.
  * @return A pointer to the list on success, otherwise NULL.
  */
 flib_list *flib_list_alloc(flib_ui32 capacity, flib_ui32 element_size);
 
 /**
- * @brief Destroys and deallocates the provided list.
+ * @brief Destroys and deallocates the list.
  * 
  * @param list The list that should be destroyed and deallocated.
  */
@@ -47,7 +47,7 @@ flib_ui32 flib_list_get_capacity(const flib_list *list);
  * @brief Returns whether the list is empty or not.
  * 
  * @param list The list which is whether empty or not.
- * @return Returns 1 if the list is empty or 0 otherwise.
+ * @return Returns 1 if the list is empty or NULL otherwise 0.
  */
 flib_i32 flib_list_is_empty(const flib_list *list);
 
@@ -56,7 +56,7 @@ flib_i32 flib_list_is_empty(const flib_list *list);
  * 
  * @param list The list from which the n-th element should be returned.
  * @param index The n-th index of the list from which the item should be returned.
- * @return Returns a pointer to the n-th element of the list, if the index is not greater than the actual size of the list.
+ * @return Returns a pointer to the n-th element of the list, if the index is not greater than the actual size of the list or NULL otherwise.
  *         The pointer needs to be manually casted to the type, the list was created for.
  */
 void *flib_list_get_item(const flib_list *list, flib_ui32 index);
@@ -66,7 +66,7 @@ void *flib_list_get_item(const flib_list *list, flib_ui32 index);
  * 
  * @param list The list for which the value should be changed.
  * @param index The n-th index of the list for which the value should be changed.
- * @param item The new value to be set.
+ * @param item A pointer to value the n-th elements should be set to.
  */
 void flib_list_set_item(flib_list *list, flib_ui32 index, void *item);
 
@@ -92,6 +92,10 @@ void flib_list_remove(flib_list *list);
  * @param index The n-th index of the element that should be removed.
  */
 void flib_list_remove_at(flib_list *list, flib_ui32 index);
+
+void flib_list_clear(flib_list *list);
+
+void flib_list_shrink_to_fit(flib_list *list);
 
 /**
  * @brief Sorts the list according to the provided compare function.

@@ -16,6 +16,8 @@ typedef unsigned long long  flib_ui64;
 
 typedef unsigned long long  flib_ptr;
 
+typedef flib_i32 (* flib_compare_func)(const void* lhs, const void* rhs);
+
 #define FLIB_THROW_EXCEPTION(fmt, ...) do { fprintf(stderr, "Exception: " fmt "(in '%s', line '%d)\n", ##__VA_ARGS__, __FILE__, __LINE__); exit(-1); } while (0)
 #define FLIB_THROW_NULL_EXCEPTION(param) FLIB_THROW_EXCEPTION("Parameter '" param "' is NULL.")
 

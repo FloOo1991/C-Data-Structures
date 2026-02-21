@@ -13,4 +13,6 @@ flib_i32 flib_queue_is_empty(const flib_queue *queue);
 
 void flib_queue_enqueue(flib_queue *queue, void *item);
 void flib_queue_dequeue(flib_queue *queue, void *opt_out_item);
+
+void *flib_queue_get_ptr(flib_queue *queue);
 #endif /* FLIB_QUEUE_H */
