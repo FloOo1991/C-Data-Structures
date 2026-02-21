@@ -28,7 +28,7 @@ flib_queue *flib_queue_alloc(flib_ui32 capacity, flib_ui32 element_size) {
 void flib_queue_dealloc(flib_queue **queue) {
     if (queue == NULL || *queue == NULL) return;
 
-    if ((*queue)->data != NULL) free((void *)(*queue)->data);
+    if ((void *)(*queue)->data != NULL) free((void *)(*queue)->data);
     free(*queue);
 }
 
@@ -70,6 +70,13 @@ void flib_queue_dequeue(flib_queue *queue, void *opt_out_item) {
     if (queue->size > 1) memmove((void *)queue->data, (void *)queue->data + queue->element_size, queue->element_size * (queue->size - 1));
     memset((void *)queue->data + (queue->element_size * (queue->size - 1)), 0, queue->element_size);
     queue->size--;
+
+    if (queue->capacity > queue->size * 3) _flib_queue_resize(queue, queue->capacity * 0.5f);
+}
+
+void *flib_queue_get_ptr(flib_queue *queue) {
+    if (queue == NULL) return NULL;
+    return (void *)queue->data;
 }
 
 void _flib_queue_resize(flib_queue *queue, flib_ui32 new_cap) {
@@ -78,7 +85,7 @@ void _flib_queue_resize(flib_queue *queue, flib_ui32 new_cap) {
     if (new_cap == 0) { free((void *)queue->data); queue->data = 0; queue->capacity = 0; queue->size = 0; return; }
 
     flib_ptr tmp = (flib_ptr)realloc((void *)queue->data, queue->element_size * new_cap);
-    if (tmp == NULL) return;
+    if ((void *)tmp == NULL) return;
 
     queue->data = tmp;
     queue->capacity = new_cap;

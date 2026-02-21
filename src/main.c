@@ -1,45 +1,26 @@
 #include <stdio.h>
+#include <malloc.h>
+#include "flib_array.h"
 #include "flib_list.h"
-#include "flib_queue.h"
-
-flib_i32 flib_compare_int32_asc(const flib_i32 *lhs, const flib_i32 *rhs) {
-    if (*lhs < *rhs) {
-        return -1;
-    } else if (*lhs == *rhs) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-flib_i32 flib_compare_int32_dsc(const flib_i32 *lhs, const flib_i32 *rhs) {
-    if (*lhs < *rhs) {
-        return 1;
-    } else if (*lhs == *rhs) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
+#include "flib_timer.h"
 
 int main() {
-    srand(1);
+    double total_time = 0;
+    flib_i32 max_iterations = 100;
 
-    flib_queue *queue = flib_queue_alloc(10, sizeof(flib_i32));
+    for (int j = 0; j < max_iterations; j++) {
+        flib_time timer = flib_timer_create();
+        flib_array *array = flib_array_alloc(10000000, sizeof(flib_i32));
 
-    for (int i = 0; i < 32; i++) {
-        flib_i32 num = rand();
-        flib_queue_enqueue(queue, &num);
-        printf("Added number %d to the queue.\n", num);
+        flib_i32 num = 32;
+        flib_array_fill(array, &num);
+
+        flib_array_dealloc(&array);
+        total_time += flib_timer_get_milliseconds(&timer);
     }
 
-    for (int i = 0; i < 32; i++) {
-        flib_i32 num;
-        flib_queue_dequeue(queue, &num);
-        printf("Removed number %d from the queue.\n", num);
-    }
 
-    flib_queue_dealloc(&queue);
-
+    printf("Allocated an array with 1.000.000 elements and filled with number 32 for %d iterations.\n"
+           "Total time: %f ms, Average time: %f ms\n", max_iterations, total_time, total_time / max_iterations);
     return 0;
 }
