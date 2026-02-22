@@ -104,7 +104,7 @@ void flib_list_shrink_to_fit(flib_list *list) {
     _flib_list_resize(list, list->size);
 }
 
-void flib_list_sort(flib_list* list, flib_list_compare_func comparer) {
+void flib_list_sort(flib_list* list, flib_compare_func comparer) {
     if (list == NULL || comparer == NULL) return;
     qsort((void *)list->data, list->size, list->element_size, comparer);
 }
@@ -124,18 +124,13 @@ void flib_list_find(flib_list* list, void* item, flib_i32 *out_index) {
 void _flib_list_resize(flib_list *list, flib_ui32 new_cap) {
     if (list == NULL) return;
 
-    flib_ptr tmp = 0;
-    if (new_cap == 0) {
-        tmp = (flib_ptr)realloc((void *)list->data, list->element_size);
-        if ((void *)tmp == NULL) return;
-        memset((void *)tmp, 0, list->element_size);
-    } else {
-        tmp = (flib_ptr)realloc((void *)list->data, list->element_size * new_cap);
-        if ((void *)tmp == NULL) return;
-        if (new_cap > list->size) memset((void *)tmp + (list->element_size * list->size), 0, list->element_size * (new_cap - list->size));
-    }
-    
+    if (new_cap == 0) { free((void *)list->data); list->capacity = 0; list->size = 0; return; }
+        
+    flib_ptr tmp = (flib_ptr)realloc((void *)list->data, list->element_size * new_cap);
+    if ((void *)tmp == NULL) return;
+
     list->data = tmp;
     list->capacity = new_cap;
-    if (list->size > new_cap) list->size = new_cap;
+    if (list->capacity <= list->size) list->size = list->capacity;
+    else memset((void *)list->data + (list->element_size * list->size), 0, list->element_size * (list->capacity - list->size));
 }

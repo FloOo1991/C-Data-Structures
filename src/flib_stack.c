@@ -88,9 +88,6 @@ void _flib_stack_resize(flib_stack *stack, flib_ui32 new_cap) {
 
     stack->data = tmp;
     stack->capacity = new_cap;
-    if (stack->capacity <= stack->size) {
-        stack->size = stack->capacity;
-    } else {
-        memset((void *)stack->data + (stack->size * stack->element_size), 0, stack->element_size * (stack->capacity - stack->size));
-    }
+    if (stack->capacity <= stack->size) stack->size = stack->capacity;
+    else memset((void *)stack->data + (stack->size * stack->element_size), 0, stack->element_size * (stack->capacity - stack->size));
 }
