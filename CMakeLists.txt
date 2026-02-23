@@ -10,6 +10,7 @@ add_executable(cds)
 add_library(
     flib STATIC
     src/flib_array.c
+    src/flib_list.c
 )
 
 target_include_directories(

@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define FLIB_FALSE          0
+#define FLIB_TRUE           1
+
 typedef char                flib_i8;
 typedef short               flib_i16;
 typedef int                 flib_i32;
@@ -22,7 +25,8 @@ typedef long long           flib_intptr_t;
 typedef unsigned long long  flib_uintptr_t;
 typedef long long           flib_ptrdiff_t;
 
-typedef flib_i32 (* flib_compare_func)(const void* lhs, const void* rhs);
+typedef flib_i32 (* flib_compare_func)(const void *_Lhs, const void *_Rhs);
+typedef flib_i32 (* flib_predicate_func)(const void *_Element);
 
 #define FLIB_THROW_EXCEPTION(fmt, ...) do { fprintf(stderr, "Exception: " fmt "(in '%s', line '%d)\n", ##__VA_ARGS__, __FILE__, __LINE__); exit(-1); } while (0)
 #define FLIB_THROW_NULL_EXCEPTION(param) FLIB_THROW_EXCEPTION("Parameter '" param "' is NULL.")
@@ -30,9 +34,9 @@ typedef flib_i32 (* flib_compare_func)(const void* lhs, const void* rhs);
 #define FLIB_NOT_IMPLEMENTED(fmt, ...) do { fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__); assert(0); } while(0)
 #define FLIB_LOG_INFO(fmt, ...)  do { fprintf(stdout, "[INFO] " fmt "\n", ##__VA_ARGS__); } while(0)
 
-static inline flib_i32 flib_malloc(flib_size_t _Size, void *_OutMemory) {
-    _OutMemory = malloc(_Size);
-    if (_OutMemory == NULL) return 0;
+static inline flib_i32 flib_malloc(flib_size_t _Size, void **_OutMemory) {
+    *_OutMemory = malloc(_Size);
+    if (*_OutMemory == NULL) return 0;
     return 1;
 }
 

@@ -1,18 +1,28 @@
 #include <stdio.h>
-#include "flib_array.h"
+#include "flib_list.h"
 #include "flib_timer.h"
 
+flib_i32 predicate_func(const void *num) {
+    if (*(flib_i32 *)num > 30) return FLIB_TRUE;
+    return FLIB_FALSE;
+}
+
 int main() {
-    flib_array *array = flib_array_create(1000000, sizeof(flib_i32));
-    
     flib_time timer = flib_timer_create();
+    flib_list *list = NULL;
+    if (!flib_list_create(64, sizeof(flib_i32), &list)) return -1;
 
-    flib_i32 num = 100;
-    flib_array_fill(array, &num);
+    for (int i = 0; i < flib_list_get_capacity(list); i++) {
+        flib_list_append(list, &i);
+    }
 
-    printf("Fill array with 1.000.000 (4 bytes each) items took %f ms\n", flib_timer_get_milliseconds(&timer));
+    flib_list_filter(list, predicate_func);
 
-    flib_array_destroy(&array);
+    for (int i = 0; i < flib_list_get_size(list); i++) {
+        printf("Index %d: %d\n", i, *(flib_i32 *)flib_list_get_element(list, i));
+    }
+
+    flib_list_destroy(&list);
 
     return 0;
 }
