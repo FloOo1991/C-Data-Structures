@@ -1,116 +1,100 @@
-#include <stdlib.h>
-#include <string.h>
 #include "flib_array.h"
 
 typedef struct flib_array {
-    flib_ptr    data;
-    flib_ui32   size;
-    flib_ui32   element_size;
+    void             *_Data;
+    flib_size_t      _Size;
+    flib_size_t      _ElementSize;
 } flib_array;
 
-flib_array* flib_array_alloc(flib_ui32 size, flib_ui32 element_size) {
+flib_array* flib_array_create(flib_size_t _Size, flib_size_t _ElementSize) {
     flib_array *array = (flib_array *)malloc(sizeof(flib_array));
     if (array == NULL) return NULL; 
 
-    array->data = (flib_ptr)malloc(size * element_size);
-    if ((void *)array->data == NULL) { free(array); return NULL; }
+    void *data = calloc(_Size, _ElementSize);
+    if (data == NULL) { free(array); return NULL; }
 
-    array->size = size;
-    array->element_size = element_size;
-
-    memset((void *)array->data, 0, size * element_size);
+    array->_Data = data;
+    array->_Size = _Size;
+    array->_ElementSize = _ElementSize;
 
     return array;
 }
 
-void flib_array_dealloc(flib_array **array) {
-    if (array == NULL || *array == NULL) return;
-    if ((void *)(*array)->data != NULL) free((void *)(*array)->data);
-    free(*array);
-    *array = NULL;
-}
-
-flib_ui32 flib_array_get_size(flib_array *array) {
-    if (array == NULL) return 0;
-    return array->size;
-}
-
-void *flib_array_get_item(flib_array *array, flib_ui32 index) {
-    if (array == NULL || index >= array->size) return NULL;
+void flib_array_destroy(flib_array **_Array) {
+    if (_Array == NULL || *_Array == NULL) return;
+    if ((*_Array)->_Data != NULL) free((*_Array)->_Data);
     
-    flib_ptr element = array->data + (array->element_size * index);
-    return (void *)element;
+    free(*_Array);
+    *_Array = NULL;
 }
 
-flib_i32 flib_array_set_item(flib_array *array, flib_ui32 index, void *data) {
-    if (array == NULL || index >= array->size || data == NULL) return 0;
-
-    flib_ptr element = array->data + (array->element_size * index);
-    memmove((void *)element, data, array->element_size);
-    return 1;
+flib_ui32 flib_array_get_size(flib_array *_Array) {
+    if (_Array == NULL) return 0;
+    return _Array->_Size;
 }
 
-void flib_array_fill(flib_array *array, void *item) {
-    if (array == NULL || item == NULL) return;
+void *flib_array_get_item(flib_array *_Array, flib_ui32 _Index) {
+    if (_Array == NULL || _Index >= _Array->_Size) return NULL;
+    return (void *)((flib_ui8 *)_Array->_Data + (_Array->_ElementSize * _Index));
+}
 
-    flib_ptr element = array->data;
-    flib_ui8 data[4 * array->element_size];
+void flib_array_set_item(flib_array *_Array, flib_ui32 _Index, void *_Data) {
+    if (_Array == NULL || _Index >= _Array->_Size) return;
+    memcpy((flib_ui8 *)_Array->_Data + (_Array->_ElementSize * _Index), _Data, _Array->_ElementSize);
+}
 
-    if (array->size > 4) {
+void flib_array_fill(flib_array *_Array, void *_Item) {
+    if (_Array == NULL || _Array->_Size == 0 || _Item == NULL) return;
+
+    flib_ui8 *array_data = (flib_ui8 *)_Array->_Data;
+    memcpy(array_data, _Item, _Array->_ElementSize);
+
+    flib_size_t btc = _Array->_Size * _Array->_ElementSize;
+    flib_size_t bc = _Array->_ElementSize;
+
+    while (bc < btc) {
+        flib_size_t bl = btc - bc;
+
+        if (bl > bc) {
+            memcpy(array_data + bc, array_data, bc);
+            bc += bc;
+        } else {
+            memcpy(array_data + bc, array_data, bl);
+            bc += bl;
+        }
+    }        
+}
+
+void flib_array_resize(flib_array *_Array, flib_size_t _NewSize) {
+    if (_Array == NULL || _Array->_Size == _NewSize) return;
+
+    if (_NewSize == 0) {
+        free(_Array->_Data);
         
-        for (int i = 0; i < 4; i++) {
-            memcpy(data + (i * array->element_size), item, array->element_size);
-        }
-
-        for (int i = 0; i < array->size / 4; i++) {
-            memcpy((void *)element, data, 4 * array->element_size);
-            element += 4 * array->element_size;
-        }
-    }
-    
-    for (int i = 0; i < array->size % 4; i++) {
-        memcpy((void *)element, item, array->element_size);
-        element += array->element_size;
-    }
-}
-
-void flib_array_resize(flib_array *array, flib_ui32 size) {
-    if (array == NULL) return;
-
-    flib_ptr tmp = 0;
-    
-    if (size == 0) {
-        tmp = (flib_ptr)realloc((void *)array->data, array->element_size);
-        if ((void *)tmp == NULL) return;
-        memset((void *)tmp, 0, array->element_size);
+        _Array->_Data = NULL;
+        _Array->_Size = 0;
+        
+        return;
     } else {
-        tmp = (flib_ptr)realloc((void *)array->data, array->element_size * size);
-        if ((void *)tmp == NULL) return;
-        if (size > array->size) memset((void *)(tmp + (array->size * array->element_size)), 0, (size - array->size) * array->element_size);
+        void *ptr = NULL;
+        if (!flib_recalloc(_Array->_Data, _Array->_Size, _NewSize, _Array->_ElementSize, &ptr)) return;          
+        _Array->_Data = ptr;
     }
     
-    array->data = tmp;
-    array->size = size;
+    _Array->_Size = _NewSize;
 }
 
-void flib_array_sort(flib_array *array, flib_compare_func compare_func) {
-    if (array == NULL || compare_func == NULL) return;
-    qsort((void *)array->data, array->size, array->element_size, compare_func);
+void flib_array_sort(flib_array *_Array, flib_compare_func _CompareFunc) {
+    if (_Array == NULL || _CompareFunc == NULL) return;
+    qsort(_Array->_Data, _Array->_Size, _Array->_ElementSize, _CompareFunc);
 }
 
-flib_i32 flib_array_find(flib_array *array, void *item) {
-    if (array == NULL || item == NULL) return -1;
+flib_i32 flib_array_find(flib_array *_Array, void *_Item) {
+    if (_Array == NULL || _Item == NULL) return -1;
 
-    flib_ptr element = array->data;
-
-    for (int i = 0; i < array->size; i++) {
-        if (memcmp((void *)element + (i * array->element_size), item, array->element_size) == 0) return i;
+    for (int i = 0; i < _Array->_Size; i++) {
+        if (memcmp((flib_ui8 *)_Array->_Data + (i * _Array->_ElementSize), _Item, _Array->_ElementSize) == 0) return i;
     }
 
     return -1;
-}
-
-const void *flib_array_get_ptr(flib_array *array) {
-    if (array == NULL) return NULL;
-    return (void *)array->data;
 }
